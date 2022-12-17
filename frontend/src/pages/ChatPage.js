@@ -1,21 +1,24 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import ChatInput from "../components/ChatInput";
 import QueueSpinner from "../components/QueueSpinner";
 import Messages from "../components/Messages";
 import Sockette from "sockette";
 import axios from "axios";
 
-// figure out how to terminate chatting
+// handle someone closing application early
+// chat screen goes off page and typing bar doesnt stay put
 
 const socketURL =
   "wss://n3lntpsij2.execute-api.us-east-1.amazonaws.com/production";
 const restURL =
   "https://6ldwf1qmm9.execute-api.us-east-1.amazonaws.com/production";
 
-const maxMsInQueue = 20000;
+const maxMsInQueue = 5 * 1000; // in ms
+const maxChatTime = 60 * 1000; // in ms
 
 let ws = null;
-const liveChatMessages = [];
+let liveChatMessages = [];
 
 function ChatPage() {
   const [inputText, setInputText] = useState("");
@@ -23,10 +26,11 @@ function ChatPage() {
   const [userId, setUserId] = useState("");
   const [inQueue, setInQueue] = useState(true);
   const [recipient, setRecipient] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     ws = new Sockette(socketURL, {
-      timeout: 5e3,
+      timeout: maxChatTime,
       maxAttempts: 1,
       onopen: (e) => onConnect(e),
       onmessage: (e) => onRecieve(e),
@@ -43,6 +47,16 @@ function ChatPage() {
     });
   };
 
+  const exitChat = () => {
+    ws.close();
+    liveChatMessages = [];
+    navigate("/");
+  };
+
+  const timeoutChat = async () => {
+    setTimeout(exitChat, maxChatTime);
+  };
+
   const checkForRecipient = async (ms, connectionId) => {
     axios
       .post(restURL, { getRecipient: true, connectionId })
@@ -51,22 +65,27 @@ function ChatPage() {
         if (connectionData.recipient) {
           setRecipient(connectionData.recipient);
           setInQueue(false);
+          timeoutChat();
           return;
+        } else {
+          if (ms > maxMsInQueue) {
+            ws.close();
+            console.log("closed connection due to long queue time");
+            exitChat();
+            return;
+          } else {
+            const waitMs = 2000;
+            setTimeout(
+              () => checkForRecipient(ms + waitMs, connectionId),
+              waitMs
+            );
+          }
         }
       })
       .catch((error) => {
         console.log(error);
         return;
       });
-
-    if (ms > maxMsInQueue) {
-      ws.close();
-      console.log("closed connection");
-      return;
-    } else {
-      const waitMs = 2000;
-      setTimeout(() => checkForRecipient(ms + waitMs, connectionId), waitMs);
-    }
   };
 
   const onRecieve = (e) => {
