@@ -1,7 +1,5 @@
-export const socketURL =
-  "wss://n3lntpsij2.execute-api.us-east-1.amazonaws.com/production";
-export const restURL =
-  "https://6ldwf1qmm9.execute-api.us-east-1.amazonaws.com/production";
+export const socketURL = process.env.REACT_APP_SOCKET_URL;
+export const restURL = process.env.REACT_APP_REST_URL;
 
 export const maxMsInQueue = 5 * 1000; // in ms
 export const maxChatTime = 5 * 60 * 1000; // in ms
