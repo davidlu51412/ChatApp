@@ -2,22 +2,16 @@ import React from "react";
 
 function ChatInput({ inputCallback, sendCallback, inputText }) {
   return (
-    <>
+    <main class="p-2">
       <input
-        placeholder="type message here..."
         type="text"
-        class="bg-transparent focus:outline-none text-white absolute bottom-5 right-5 w-2/3 break-words"
+        placeholder="chat [enter]"
+        class="bg-black border-2 px-4 py-3 text-2xl rounded-2xl focus:outline-none text-zinc-200 fixed right-3 bottom-3 w-10/12 h-16  break-words resize-none"
         onChange={(e) => inputCallback(e)}
         value={inputText}
         onKeyDown={(e) => (e.key == "Enter" ? sendCallback() : {})}
       />
-      <button
-        class="bg-white absolute bottom-5 right-2 rounded-full w-10 hover:bg-gray-300"
-        onClick={() => sendCallback()}
-      >
-        <i class="material-icons ml-auto mr-auto block">&#xe163;</i>
-      </button>
-    </>
+    </main>
   );
 }
 

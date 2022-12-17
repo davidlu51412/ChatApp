@@ -3,11 +3,13 @@ import Message from "./Message";
 
 function Messages({ messages }) {
   return (
-    <div class="relative">
+    <main class="p-4">
       {messages.map((message) => (
         <Message text={message.text} isUser={message.isUser} />
       ))}
-    </div>
+      <br />
+      <br />
+    </main>
   );
 }
 

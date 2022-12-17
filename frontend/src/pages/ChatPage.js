@@ -15,7 +15,7 @@ const restURL =
   "https://6ldwf1qmm9.execute-api.us-east-1.amazonaws.com/production";
 
 const maxMsInQueue = 5 * 1000; // in ms
-const maxChatTime = 60 * 1000; // in ms
+const maxChatTime = 5 * 60 * 1000; // in ms
 
 let ws = null;
 let liveChatMessages = [];
@@ -29,17 +29,20 @@ function ChatPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    ws = new Sockette(socketURL, {
-      timeout: maxChatTime,
-      maxAttempts: 1,
-      onopen: (e) => onConnect(e),
-      onmessage: (e) => onRecieve(e),
-      onreconnect: (e) => console.log("Reconnecting...", e),
-      onmaximum: (e) => console.log("Stop Attempting!", e),
-      onclose: (e) => console.log("Closed!", e),
-      onerror: (e) => console.log("Error:", e),
-    });
-  }, []);
+    if (!ws) {
+      ws = new Sockette(socketURL, {
+        timeout: maxChatTime,
+        maxAttempts: 1,
+        onopen: (e) => onConnect(e),
+        onmessage: (e) => onRecieve(e),
+        onreconnect: (e) => console.log("Reconnecting...", e),
+        onmaximum: (e) => console.log("Stop Attempting!", e),
+        onclose: (e) => console.log("Closed!", e),
+        onerror: (e) => exitChat(),
+      });
+    }
+    window.scrollTo(0, document.body.scrollHeight);
+  }, [messages]);
 
   const onConnect = (e) => {
     ws.json({
@@ -49,6 +52,7 @@ function ChatPage() {
 
   const exitChat = () => {
     ws.close();
+    ws = null;
     liveChatMessages = [];
     navigate("/");
   };
@@ -69,7 +73,6 @@ function ChatPage() {
           return;
         } else {
           if (ms > maxMsInQueue) {
-            ws.close();
             console.log("closed connection due to long queue time");
             exitChat();
             return;
@@ -126,7 +129,7 @@ function ChatPage() {
   };
 
   return (
-    <main class="bg-neutral-900	 h-screen">
+    <main class="bg-zinc-900 h-auto min-h-screen">
       {inQueue && (
         <>
           <QueueSpinner />

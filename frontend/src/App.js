@@ -1,7 +1,7 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 import ChatPage from "./pages/ChatPage";
-import QueueSpinner from "./components/QueueSpinner";
+import ChatTestPage from "./pages/ChatTestPage";
 import HomePage from "./pages/HomePage";
 
 function App() {
@@ -10,6 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/chat" element={<ChatPage />} />
+        <Route path="/test" element={<ChatTestPage />} />
         <Route path="*" element={<>Error Page</>} />
       </Routes>
     </main>

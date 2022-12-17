@@ -2,10 +2,10 @@ import React from "react";
 
 function Message({ text, isUser }) {
   const styling = !isUser
-    ? "bg-black text-white max-w-6/12 absolute left-0 rounded-r-lg p-2"
-    : "bg-white max-w-6/12 absolute right-0 rounded-l-lg p-2";
+    ? "bg-zinc-700 text-zinc-200 rounded-lg float-left p-2 max-w-[60%]"
+    : "bg-zinc-200 text-zinc-700 rounded-lg float-right p-2 max-w-[60%]";
   return (
-    <div class="flex py-1 h-12">
+    <div class="w-full overflow-auto">
       <p class={styling}>{text}</p>
     </div>
   );
