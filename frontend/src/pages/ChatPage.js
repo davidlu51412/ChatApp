@@ -73,7 +73,6 @@ function ChatPage() {
           return;
         } else {
           if (ms > maxMsInQueue) {
-            console.log("closed connection due to long queue time");
             exitAndReturnToHome();
             return;
           } else {
@@ -107,7 +106,6 @@ function ChatPage() {
 
       checkForRecipient(0, connectionId);
     } else if (recipientDisconnected) {
-      console.log("recipient disconnected");
       exitAndReturnToHome();
     } else {
       liveChatMessages.push({ text: message, isUser: false });
