@@ -12,7 +12,7 @@ const socketURL =
 const restURL =
   "https://6ldwf1qmm9.execute-api.us-east-1.amazonaws.com/production";
 
-const maxMsInQueue = 10000;
+const maxMsInQueue = 20000;
 
 let ws = null;
 const liveChatMessages = [];
@@ -22,7 +22,7 @@ function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [userId, setUserId] = useState("");
   const [inQueue, setInQueue] = useState(true);
-  const [recipient, setRecipient] = useState(""); // TODO: get get recipient
+  const [recipient, setRecipient] = useState("");
 
   useEffect(() => {
     ws = new Sockette(socketURL, {
@@ -48,7 +48,6 @@ function ChatPage() {
       .post(restURL, { getRecipient: true, connectionId })
       .then((response) => {
         const connectionData = JSON.parse(response.data.body);
-        console.log(connectionData);
         if (connectionData.recipient) {
           setRecipient(connectionData.recipient);
           setInQueue(false);
@@ -60,16 +59,20 @@ function ChatPage() {
         return;
       });
 
-    if (ms > maxMsInQueue) return;
-    const waitMs = 1000;
-    setTimeout(() => checkForRecipient(ms + waitMs, connectionId), waitMs);
+    if (ms > maxMsInQueue) {
+      ws.close();
+      console.log("closed connection");
+      return;
+    } else {
+      const waitMs = 2000;
+      setTimeout(() => checkForRecipient(ms + waitMs, connectionId), waitMs);
+    }
   };
 
   const onRecieve = (e) => {
     const { sender, recipient, message, connectionId } = JSON.parse(e.data);
     if (connectionId) {
       setUserId(connectionId);
-      console.log("userid:", connectionId);
       axios
         .post(restURL, { joinQueue: true, connectionId })
         .then((response) => {
