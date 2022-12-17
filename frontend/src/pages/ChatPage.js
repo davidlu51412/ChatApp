@@ -5,42 +5,44 @@ import QueueSpinner from "../components/QueueSpinner";
 import Messages from "../components/Messages";
 import Sockette from "sockette";
 import axios from "axios";
-
-// handle someone closing application early
-// chat screen goes off page and typing bar doesnt stay put
-
-const socketURL =
-  "wss://n3lntpsij2.execute-api.us-east-1.amazonaws.com/production";
-const restURL =
-  "https://6ldwf1qmm9.execute-api.us-east-1.amazonaws.com/production";
-
-const maxMsInQueue = 5 * 1000; // in ms
-const maxChatTime = 5 * 60 * 1000; // in ms
-
-let ws = null;
-let liveChatMessages = [];
+import {
+  liveChatMessages,
+  socketURL,
+  restURL,
+  maxChatTime,
+  maxMsInQueue,
+  ws,
+  exitChat,
+  setWs,
+} from "../globals/globals";
 
 function ChatPage() {
+  const navigate = useNavigate();
   const [inputText, setInputText] = useState("");
   const [messages, setMessages] = useState([]);
   const [userId, setUserId] = useState("");
   const [inQueue, setInQueue] = useState(true);
   const [recipient, setRecipient] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!ws) {
-      ws = new Sockette(socketURL, {
+      const newWs = new Sockette(socketURL, {
         timeout: maxChatTime,
         maxAttempts: 1,
         onopen: (e) => onConnect(e),
         onmessage: (e) => onRecieve(e),
         onreconnect: (e) => console.log("Reconnecting...", e),
         onmaximum: (e) => console.log("Stop Attempting!", e),
-        onclose: (e) => console.log("Closed!", e),
-        onerror: (e) => exitChat(),
+        onclose: (e) => exitAndReturnToHome(),
+        onerror: (e) => exitAndReturnToHome(),
       });
+      setWs(newWs);
     }
+
+    window.scrollTo(0, document.body.scrollHeight);
+  }, []);
+
+  useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight);
   }, [messages]);
 
@@ -50,15 +52,13 @@ function ChatPage() {
     });
   };
 
-  const exitChat = () => {
-    ws.close();
-    ws = null;
-    liveChatMessages = [];
-    navigate("/");
+  const timeoutChat = async () => {
+    setTimeout(exitAndReturnToHome, maxChatTime);
   };
 
-  const timeoutChat = async () => {
-    setTimeout(exitChat, maxChatTime);
+  const exitAndReturnToHome = () => {
+    exitChat();
+    navigate("/");
   };
 
   const checkForRecipient = async (ms, connectionId) => {
@@ -74,7 +74,7 @@ function ChatPage() {
         } else {
           if (ms > maxMsInQueue) {
             console.log("closed connection due to long queue time");
-            exitChat();
+            exitAndReturnToHome();
             return;
           } else {
             const waitMs = 2000;
@@ -92,7 +92,8 @@ function ChatPage() {
   };
 
   const onRecieve = (e) => {
-    const { sender, recipient, message, connectionId } = JSON.parse(e.data);
+    const { sender, recipient, message, connectionId, recipientDisconnected } =
+      JSON.parse(e.data);
     if (connectionId) {
       setUserId(connectionId);
       axios
@@ -105,6 +106,9 @@ function ChatPage() {
         });
 
       checkForRecipient(0, connectionId);
+    } else if (recipientDisconnected) {
+      console.log("recipient disconnected");
+      exitAndReturnToHome();
     } else {
       liveChatMessages.push({ text: message, isUser: false });
       setMessages([...liveChatMessages]);

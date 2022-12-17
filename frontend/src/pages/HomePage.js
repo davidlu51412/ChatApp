@@ -1,7 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { exitChat } from "../globals/globals";
 
 function HomePage() {
+  exitChat();
   const navigate = useNavigate();
   return (
     <main class="bg-zinc-900 w-screen h-screen text-zinc-900">
