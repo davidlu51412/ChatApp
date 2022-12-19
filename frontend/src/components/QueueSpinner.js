@@ -11,7 +11,7 @@ function QueueSpinner() {
         <Spinner animation="border" role="status">
           <span className="visually-hidden"></span>
         </Spinner>
-        <div class="">finding a potential chat :D</div>
+        <div class="">finding a potential chat</div>
       </div>
     </main>
   );
