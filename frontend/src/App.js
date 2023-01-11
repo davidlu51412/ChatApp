@@ -11,12 +11,11 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/chat" element={<ChatPage />} />
-        {/* <Route path="/test" element={<ChatTestPage />} /> */}
         <Route path="/info" element={<InfoPage />} />
         <Route
           path="*"
           element={
-            <>This page doesnt exist and I was too lazy to make an error page</>
+            <>This page does not exist</>
           }
         />
       </Routes>
